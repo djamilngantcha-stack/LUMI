@@ -1,0 +1,92 @@
+LUMI AI Camera V4 — Learning
+A complete Android/Kotlin camera app with offline image processing and a safe background learning/update architecture.
+Included
+CameraX preview and capture
+Gallery
+Local photo enhancement
+Quality analysis
+Feedback
+On-device adaptation from feedback
+TensorFlow Lite Vision module
+Optional background TFLite model updates
+Wi-Fi-only update constraint
+HTTPS-only model endpoint
+No automatic photo upload
+ARM64, ARMv7 and universal APK
+GitHub Actions + Gradle 8.7
+Important distinction
+The app does NOT secretly or continuously train a neural network on the phone. Instead, it adapts processing from local feedback and can download a newly trained TFLite model in the background from an explicitly configured HTTPS endpoint.
+A real server-side training system still requires a dataset, training code, validation and a server/PC with compute resources.LUMI Learning System
+What is actually implemented
+LUMI now has three layers:
+On-device adaptation
+Stores only small feedback statistics locally.
+Learns whether the user tends to like/dislike the current enhancement.
+Uses those statistics to adjust a recommended enhancement intensity.
+Background model update
+Android WorkManager can check for a new TFLite model in the background.
+It is restricted to HTTPS and unmetered/Wi-Fi networking.
+The app does not upload photos automatically.
+A model is downloaded only when an explicit HTTPS model URL is configured.
+Neural-network training
+This is intentionally NOT performed on the phone.
+Training a useful neural network requires a training dataset, loss function, validation, compute resources and a controlled training pipeline.
+The phone is a deployment/inference device.
+To enable model updates
+Set LUMI_MODEL_URL in app/build.gradle to your own HTTPS endpoint serving a validated TFLite model.
+Do not put a fake URL or fake model into the application.
+Privacy
+The default configuration:
+does not upload photos;
+does not upload camera frames;
+does not use mobile data for model updates;
+keeps feedback statistics in the app's private storage.
+Important
+"Self-learning" here means safe on-device adaptation plus optional background model replacement. It is not advertised as autonomous neural-network training.LUMI GitHub build note
+
+This repository intentionally builds with the Gradle installation provided by GitHub Actions.
+The workflow installs Gradle 8.7 and runs:
+    gradle --no-daemon assembleDebug
+
+Therefore this repository does NOT require gradlew or gradle-wrapper.jar for GitHub Actions.
+
+If you later want to build locally with ./gradlew, generate a Gradle Wrapper for the project separately.
+gradle-wrapper.jarlumi_denoise.tflitelumi_light.tfliteLUMI V3.1 model support
+
+The app is intentionally safe without .tflite files:
+- It starts normally.
+- Camera and Gallery work.
+- Local enhancement works.
+- AI model loading is attempted only when all three files exist.
+- If models are missing or incompatible, LUMI falls back to local enhancement.
+
+For real TFLite inference, provide models whose tensor input/output specifications
+are known. Do not rename unrelated models and expect them to work.
+Expected filenames:
+mobilenet_v3.tflite
+lumi_light.tflite
+lumi_denoise.tflite
+mobilenet_v3.tfliteandroid.hardware.cameraandroid.permission.CAMERA<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <application
+        android:allowBackup="false"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.Lumi">
+
+        <activity
+            android:name=".MainActivity"
+            android:screenOrientation="portrait"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
+http://schemas.android.com/apk/res/android
